@@ -3253,3 +3253,222 @@ button.peek-news-item:active { background: var(--accent-soft); }
   .page { padding: 20px 18px 48px; }
   .up-next-grid, .course-grid { grid-template-columns: 1fr; }
 }
+
+/* ──────── due-today emphasis in greeting ──────── */
+.greeting-due-today {
+  color: var(--urgent);
+  font-weight: 700;
+}
+
+/* ──────── grade summary widget ──────── */
+.grade-summary {
+  margin-bottom: 36px;
+}
+.grade-summary-body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.grade-overall {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-soft);
+  flex-shrink: 0;
+}
+.grade-overall-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+.grade-overall-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+}
+.grade-overall-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: currentColor;
+}
+.grade-overall-info { min-width: 0; }
+.grade-overall-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.grade-overall-detail {
+  font-size: 12px;
+  color: var(--muted);
+}
+.grade-courses {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.grade-course {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+}
+.grade-course-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.grade-course-pct {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.grade-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-soft);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.grade-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.grade-course-detail {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* Grade color coding */
+.grade-pct--good { color: var(--success); }
+.grade-pct--ok   { color: var(--accent); }
+.grade-pct--low  { color: var(--urgent); }
+.grade-bar-fill.grade-pct--good { background: var(--success); }
+.grade-bar-fill.grade-pct--ok   { background: var(--accent); }
+.grade-bar-fill.grade-pct--low  { background: var(--urgent); }
+.grade-overall-ring.grade-pct--good { color: var(--success); }
+.grade-overall-ring.grade-pct--ok   { color: var(--accent); }
+.grade-overall-ring.grade-pct--low  { color: var(--urgent); }
+
+@media (max-width: 820px) {
+  .grade-summary-body { flex-direction: column; }
+  .grade-overall { width: 100%; }
+}
+
+/* ──────── keyboard shortcuts overlay ──────── */
+.shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  background: rgba(20, 16, 12, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.shortcuts-overlay[hidden] { display: none !important; }
+.shortcuts-overlay.visible { opacity: 1; }
+.shortcuts-card {
+  width: min(420px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lift);
+  padding: 24px 28px 20px;
+  transform: translateY(-8px) scale(0.97);
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.shortcuts-overlay.visible .shortcuts-card {
+  transform: translateY(0) scale(1);
+}
+.shortcuts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.shortcuts-title {
+  font-family: "Iowan Old Style", "Charter", "Source Serif Pro", Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.shortcuts-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--faint);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.shortcuts-close:hover { background: var(--surface-soft); color: var(--text); }
+.shortcuts-close svg { width: 14px; height: 14px; }
+.shortcuts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shortcuts-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0;
+}
+.shortcuts-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-strong);
+  font-family: "SF Mono", "JetBrains Mono", "Cascadia Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.shortcuts-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+.shortcuts-foot {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  text-align: center;
+}
+.shortcuts-foot kbd {
+  font-family: "SF Mono", "JetBrains Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-strong);
+}
