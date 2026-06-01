@@ -77,14 +77,14 @@ const CHANGELOG = {
 // localStorage, and the data-theme attribute. Renaming `name` is safe;
 // don't touch `id` without migrating storage.
 const PALETTES = [
-  { id: 'default',  name: 'Default',   bg: '#FAF2E2', accent: '#5B4FB8' },
-  { id: 'mocha',    name: 'Cipher',    bg: '#ECDBC2', accent: '#8B5A3C' },
+  { id: 'default', name: 'Default', bg: '#FAF2E2', accent: '#5B4FB8' },
+  { id: 'mocha', name: 'Cipher', bg: '#ECDBC2', accent: '#8B5A3C' },
   { id: 'lavender', name: 'Castorice', bg: '#EFE4F4', accent: '#8B5CF6' },
-  { id: 'rose',     name: 'Hyacine',   bg: '#F5DCE0', accent: '#C75B7A' },
-  { id: 'ocean',    name: 'Cerydra',   bg: '#E3EEF7', accent: '#4A7FC9' },
-  { id: 'slate',    name: 'Hysilens',  bg: '#DBE3EC', accent: '#455A75' },
-  { id: 'plain',    name: 'Mydei',     bg: '#FFFFFF', accent: '#FF4500' },
-  { id: 'benilde',  name: 'Anaxa',     bg: '#DCEDE1', accent: '#006937' },
+  { id: 'rose', name: 'Hyacine', bg: '#F5DCE0', accent: '#C75B7A' },
+  { id: 'ocean', name: 'Cerydra', bg: '#E3EEF7', accent: '#4A7FC9' },
+  { id: 'slate', name: 'Hysilens', bg: '#DBE3EC', accent: '#455A75' },
+  { id: 'plain', name: 'Mydei', bg: '#FFFFFF', accent: '#FF4500' },
+  { id: 'benilde', name: 'Anaxa', bg: '#DCEDE1', accent: '#006937' },
 ];
 
 /* Per-resource cached fetcher with concurrency cap. */
@@ -109,10 +109,10 @@ async function loadCourseBundle(ouId, { swr = true, onPartial = null } = {}) {
   };
 
   const [news, dropbox, quizzes, grades, submitted] = await Promise.all([
-    cachedFetch(ks('news'),      () => api.courseNews(ouId),     TTL.news,      { swr, onRefresh: fire('news') }),
-    cachedFetch(ks('dropbox'),   () => api.courseDropbox(ouId),  TTL.dropbox,   { swr, onRefresh: fire('dropbox') }),
-    cachedFetch(ks('quizzes'),   () => api.courseQuizzes(ouId),  TTL.quizzes,   { swr, onRefresh: fire('quizzes') }),
-    cachedFetch(ks('grades'),    () => api.courseGrades(ouId),   TTL.grades,    { swr, onRefresh: fire('grades') }),
+    cachedFetch(ks('news'), () => api.courseNews(ouId), TTL.news, { swr, onRefresh: fire('news') }),
+    cachedFetch(ks('dropbox'), () => api.courseDropbox(ouId), TTL.dropbox, { swr, onRefresh: fire('dropbox') }),
+    cachedFetch(ks('quizzes'), () => api.courseQuizzes(ouId), TTL.quizzes, { swr, onRefresh: fire('quizzes') }),
+    cachedFetch(ks('grades'), () => api.courseGrades(ouId), TTL.grades, { swr, onRefresh: fire('grades') }),
     cachedFetch(ks('submitted'), () => api.dropboxSubmittedIds(ouId), TTL.submitted, { swr, onRefresh: fire('submitted') }),
   ]);
 
@@ -225,7 +225,7 @@ async function init() {
   checkForUpdate().then(async () => {
     state.updateStatus = await getUpdateStatus();
     renderUpdateBanner();
-  }).catch(() => {});
+  }).catch(() => { });
 
   try {
     // swr=true: every layer serves stale cache instantly and refreshes in
@@ -255,8 +255,8 @@ async function init() {
 async function refreshAll({ swr = true } = {}) {
   // Top-level resources, each with its own TTL.
   const [meR, mcR, enrollR] = await Promise.all([
-    cachedFetch('whoami', () => api.whoami(),         TTL.whoami,     { swr, onRefresh: v => { state.me = v; render(); } }),
-    cachedFetch('mycourses', () => api.myCourses(),   TTL.courseList, { swr, onRefresh: () => scheduleReRender() }),
+    cachedFetch('whoami', () => api.whoami(), TTL.whoami, { swr, onRefresh: v => { state.me = v; render(); } }),
+    cachedFetch('mycourses', () => api.myCourses(), TTL.courseList, { swr, onRefresh: () => scheduleReRender() }),
     cachedFetch('enrollments', () => api.myEnrollments(), TTL.courseList, { swr, onRefresh: () => scheduleReRender() }),
   ]);
   state.me = meR.value;
@@ -399,7 +399,7 @@ function render() {
   // Up Next = active todos only. Submitted items disappear from this list
   // (you've done them — they're no longer "up next").
   state._upNext = derive.buildUpNext(visibleCourses, state.bundles, { withinDays: 21, includeSubmitted: false }).slice(0, 4);
-  state._feed   = derive.buildFeed(visibleCourses, state.bundles, { limit: 10 });
+  state._feed = derive.buildFeed(visibleCourses, state.bundles, { limit: 10 });
 
   renderUpNext(state._upNext);
   renderCourses(arranged);
@@ -414,10 +414,10 @@ function render() {
 function stringIds(c) { return { ...c, OrgUnitId: String(c.OrgUnitId) }; }
 
 const STATUS = {
-  todo:   { label: 'Not yet started', cls: '',           icon: null },
-  draft:  { label: 'In progress',     cls: '',           icon: null },
-  done:   { label: 'Submitted',       cls: 'pill--done', icon: 'check' },
-  graded: { label: 'Graded',          cls: 'pill--done', icon: 'check' },
+  todo: { label: 'Not yet started', cls: '', icon: null },
+  draft: { label: 'In progress', cls: '', icon: null },
+  done: { label: 'Submitted', cls: 'pill--done', icon: 'check' },
+  graded: { label: 'Graded', cls: 'pill--done', icon: 'check' },
 };
 
 function renderUpNext(items) {
@@ -585,19 +585,19 @@ function courseTile(c, isPinned, opts = {}) {
         ${highlights.length ? `
           <div class="course-tile-highlights">
             ${highlights.map(h => {
-              const clickable = h.kind === 'announcement' && h.newsId;
-              const Tag = clickable ? 'button' : 'div';
-              const attrs = clickable
-                ? `type="button" data-news-id="${escapeHtml(String(h.newsId))}" data-news-course="${escapeHtml(String(h.courseId))}"`
-                : '';
-              return `
+    const clickable = h.kind === 'announcement' && h.newsId;
+    const Tag = clickable ? 'button' : 'div';
+    const attrs = clickable
+      ? `type="button" data-news-id="${escapeHtml(String(h.newsId))}" data-news-course="${escapeHtml(String(h.courseId))}"`
+      : '';
+    return `
                 <${Tag} class="course-tile-highlight${clickable ? ' course-tile-highlight--clickable' : ''}" ${attrs}>
                   <span class="course-tile-highlight-icon">${ICONS[h.icon]}</span>
                   <span class="course-tile-highlight-title">${escapeHtml(h.title)}</span>
                   <span class="course-tile-highlight-when">${escapeHtml(h.when)}</span>
                 </${Tag}>
               `;
-            }).join('')}
+  }).join('')}
           </div>
         ` : ''}
       </div>
@@ -718,7 +718,7 @@ function renderFeed(items) {
     const ci = derive.colorIndex(it.courseCode);
     let body = '';
     if (it.kind === 'announcement') body = `New announcement in <strong>${escapeHtml(it.courseCode)}</strong> — ${escapeHtml(it.title)}`;
-    else if (it.kind === 'grade')   body = `Grade posted: <strong>${escapeHtml(it.title)}</strong>`;
+    else if (it.kind === 'grade') body = `Grade posted: <strong>${escapeHtml(it.title)}</strong>`;
     else body = escapeHtml(it.title);
     const expandable = it.kind === 'announcement' && (it.bodyHtml || it.bodyText);
     return `
@@ -935,7 +935,7 @@ const PALETTE_WAVE = {
  * theme when the View Transition ends, producing the visible ~80% snap. */
 const PALETTE_WAVE_MARGIN = PALETTE_WAVE.amplitude + 5;
 const PALETTE_WAVE_START_X = -PALETTE_WAVE.slantWidth - PALETTE_WAVE_MARGIN;
-const PALETTE_WAVE_END_X   = 100 + PALETTE_WAVE.slantWidth + PALETTE_WAVE_MARGIN;
+const PALETTE_WAVE_END_X = 100 + PALETTE_WAVE.slantWidth + PALETTE_WAVE_MARGIN;
 
 function wavePolygon(progress, phase) {
   const x = PALETTE_WAVE_START_X + progress * (PALETTE_WAVE_END_X - PALETTE_WAVE_START_X);
@@ -966,7 +966,7 @@ function wavePolygon(progress, phase) {
  * produces buttery-smooth motion with no acceleration glitches. */
 const PALETTE_WAVE_SAMPLES = 36;
 function easeInOutSine(t) { return -(Math.cos(Math.PI * t) - 1) / 2; }
-function lerp(a, b, t)    { return a + (b - a) * t; }
+function lerp(a, b, t) { return a + (b - a) * t; }
 
 let _paletteKeyframesInstalled = false;
 function installPaletteKeyframes() {
@@ -1130,8 +1130,8 @@ async function toggleSettings(anchor) {
       <h3 class="settings-section-label">Theme</h3>
       <div class="theme-swatches" role="radiogroup" aria-label="Color theme">
         ${PALETTES.map(p => {
-          const active = document.documentElement.dataset.theme === p.id;
-          return `
+    const active = document.documentElement.dataset.theme === p.id;
+    return `
             <button class="theme-swatch${active ? ' is-active' : ''}"
                     type="button" role="radio" aria-checked="${active}"
                     data-palette="${p.id}" title="${escapeHtml(p.name)}">
@@ -1139,7 +1139,7 @@ async function toggleSettings(anchor) {
               <span class="theme-swatch-label">${escapeHtml(p.name)}</span>
             </button>
           `;
-        }).join('')}
+  }).join('')}
       </div>
     </section>
 
@@ -1151,8 +1151,8 @@ async function toggleSettings(anchor) {
           <div>
             <div class="settings-about-version">SmallSky v${escapeHtml(chrome.runtime.getManifest().version)}</div>
             ${(state.updateStatus && state.updateStatus.available && state.updateStatus.latest !== state.updateDismissed)
-              ? `<button class="settings-about-update" data-update-action="show">v${escapeHtml(state.updateStatus.latest)} available →</button>`
-              : ''}
+      ? `<button class="settings-about-update" data-update-action="show">v${escapeHtml(state.updateStatus.latest)} available →</button>`
+      : ''}
           </div>
         </div>
         <div class="settings-about-tag">Made by Joaquin Bryan G. Ross</div>
@@ -1169,10 +1169,10 @@ async function toggleSettings(anchor) {
         </div>
       </div>
       ${(() => {
-        const v = chrome.runtime.getManifest().version;
-        const entries = CHANGELOG[v];
-        if (!entries || !entries.length) return '';
-        return `
+      const v = chrome.runtime.getManifest().version;
+      const entries = CHANGELOG[v];
+      if (!entries || !entries.length) return '';
+      return `
           <details class="settings-changelog">
             <summary>What's new in v${escapeHtml(v)}</summary>
             <div class="settings-changelog-body">
@@ -1180,7 +1180,7 @@ async function toggleSettings(anchor) {
             </div>
           </details>
         `;
-      })()}
+    })()}
     </section>
   `;
   pop.hidden = false;
@@ -1243,7 +1243,7 @@ function wireGlobalSettingsHandlers() {
       }
       const parts = [];
       if (orphans.schedules.length) parts.push(`${orphans.schedules.length} class schedule${orphans.schedules.length === 1 ? '' : 's'}`);
-      if (orphans.photos.length)    parts.push(`${orphans.photos.length} custom photo${orphans.photos.length === 1 ? '' : 's'}`);
+      if (orphans.photos.length) parts.push(`${orphans.photos.length} custom photo${orphans.photos.length === 1 ? '' : 's'}`);
       const summary = parts.join(' and ');
       if (!confirm(`Remove ${summary} from courses no longer in your list? This can't be undone.`)) return;
 
@@ -1298,7 +1298,7 @@ async function toggleCafeMode() {
   state.prefs = await store.setPrefs({ cafeMode: !current });
   applyCafeMode();
   showToast(!current ? 'Cafe mode ON' : 'Cafe mode OFF');
-  
+
   // Also update settings checkbox if the popover is open
   const checkbox = document.querySelector('input[data-pref="cafeMode"]');
   if (checkbox) checkbox.checked = !current;
@@ -1362,10 +1362,10 @@ function toggleBell(anchor) {
     </div>
     <div class="bell-body">
       ${items.length === 0
-        ? '<div class="bell-empty">No new notifications.</div>'
-        : items.slice(0, 12).map(it => {
-            const ci = derive.colorIndex(it.courseCode);
-            return `
+      ? '<div class="bell-empty">No new notifications.</div>'
+      : items.slice(0, 12).map(it => {
+        const ci = derive.colorIndex(it.courseCode);
+        return `
               <a class="bell-item${it._read ? ' is-read' : ''}" href="${api.BASE}/d2l/lms/news/main.d2l?ou=${it.courseId}" target="_blank" rel="noopener">
                 <span class="bell-item-icon chip-c${ci}">${ICONS.megaphone}</span>
                 <div class="bell-item-body">
@@ -1377,7 +1377,7 @@ function toggleBell(anchor) {
                 </div>
               </a>
             `;
-          }).join('')}
+      }).join('')}
     </div>
   `;
   pop.hidden = false;
@@ -1428,7 +1428,7 @@ function toggleProfileMenu(anchor) {
   const me = state.me || {};
   const fullName = [me.FirstName, me.LastName].filter(Boolean).join(' ') || 'You';
   const id = me.UniqueName || '';
-  const initials = ((me.FirstName||'')[0] || '') + ((me.LastName||'')[0] || '');
+  const initials = ((me.FirstName || '')[0] || '') + ((me.LastName || '')[0] || '');
 
   const menu = $('#profile-menu');
   const hasAvatar = !!state.avatar;
@@ -1498,7 +1498,7 @@ async function checkSessionOnWake() {
     // Session is still good — update state and kick a soft refresh.
     state.me = me;
     await store.cacheSet('whoami', me, store.TTL.whoami);
-    refreshAll({ swr: true }).catch(() => {});
+    refreshAll({ swr: true }).catch(() => { });
   } catch (e) {
     if (e.code === 'AUTH') {
       // Session died during hibernate — show the login screen.
@@ -1639,15 +1639,15 @@ function wireGlobalMenuHandlers() {
     if (!action) return;
     const ouId = $('#course-menu').dataset.ouId;
     closeCourseMenu();
-    if (action === 'pin')          { state.prefs = await store.togglePin(ouId); render(); }
-    else if (action === 'hide')    { state.prefs = await store.toggleHidden(ouId); render(); }
+    if (action === 'pin') { state.prefs = await store.togglePin(ouId); render(); }
+    else if (action === 'hide') { state.prefs = await store.toggleHidden(ouId); render(); }
     else if (action === 'schedule') {
       // Re-find tile after menu close so the editor anchors to the live element.
       const tile = document.querySelector(`.course-tile[data-course-id="${CSS.escape(ouId)}"]`);
       const code = tile && tile.dataset.courseCode;
       openScheduleEditor(ouId, tile, code);
     }
-    else if (action === 'photo')   { triggerPhotoUpload(ouId); }
+    else if (action === 'photo') { triggerPhotoUpload(ouId); }
     else if (action === 'resetPhoto') {
       state.photos = await store.setCoursePhoto(ouId, null);
       render();
@@ -1748,7 +1748,7 @@ async function showPeek(tile) {
   // Keeps "due / new" counts on the tile + What's New current.
   loadCourseBundle(courseId, { swr: true })
     .then(b => { state.bundles[courseId] = b; render(); })
-    .catch(() => {});
+    .catch(() => { });
 
   // Fetch TOC + recent announcements (with cache). Re-position via the helper
   // so we look up the *current* tile element (the original may have been
@@ -1962,7 +1962,7 @@ function wireKeyboardShortcuts() {
         _gradesExpanded = !_gradesExpanded;
         // Rerender dashboard to pick up grades view change. 
         // This recalculates upNext/feed but is completely synchronous and fast.
-        render(); 
+        render();
         break;
       }
 
