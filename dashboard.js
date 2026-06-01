@@ -337,6 +337,11 @@ function renderTopbar() {
 function refreshThemeIcon() {
   const isDark = document.documentElement.dataset.mode === 'dark';
   $('[data-action="theme"]').innerHTML = isDark ? ICONS.sun : ICONS.moon;
+  
+  const themeLabel = $('#shortcut-theme-label');
+  if (themeLabel) {
+    themeLabel.textContent = isDark ? 'Light mode' : 'Dark mode';
+  }
 }
 
 function renderGreeting(name) {
@@ -1899,18 +1904,6 @@ function wireGlobalEvents() {
 
 /* ---- keyboard shortcuts ---- */
 
-const SHORTCUTS = [
-  { key: '/', label: 'Focus search' },
-  { key: 'R', label: 'Refresh data' },
-  { key: 'T', label: 'Toggle light / dark' },
-  { key: 'B', label: 'Open notifications' },
-  { key: 'G', label: 'Toggle grade summary' },
-  { key: 'C', label: 'Toggle Cafe Mode' },
-  { key: '1–9', label: 'Open course by position' },
-  { key: 'Esc', label: 'Close any open panel' },
-  { key: '?', label: 'Show this help' },
-];
-
 let _shortcutsOverlayOpen = false;
 
 function wireKeyboardShortcuts() {
@@ -2009,6 +2002,20 @@ function wireKeyboardShortcuts() {
 
 function toggleShortcutsOverlay() {
   if (_shortcutsOverlayOpen) { closeShortcutsOverlay(); return; }
+  
+  const isDark = document.documentElement.dataset.mode === 'dark';
+  const shortcuts = [
+    { key: '/', label: 'Focus search' },
+    { key: 'R', label: 'Refresh data' },
+    { key: 'T', label: isDark ? 'Light mode' : 'Dark mode' },
+    { key: 'B', label: 'Open notifications' },
+    { key: 'G', label: 'Toggle grade summary' },
+    { key: 'C', label: 'Toggle Cafe Mode' },
+    { key: '1–9', label: 'Open course by position' },
+    { key: 'Esc', label: 'Close any open panel' },
+    { key: '?', label: 'Show this help' },
+  ];
+
   const overlay = $('#shortcuts-overlay');
   overlay.innerHTML = `
     <div class="shortcuts-card">
@@ -2017,7 +2024,7 @@ function toggleShortcutsOverlay() {
         <button class="shortcuts-close" aria-label="Close" data-shortcuts-close>${ICONS.close}</button>
       </div>
       <div class="shortcuts-grid">
-        ${SHORTCUTS.map(s => `
+        ${shortcuts.map(s => `
           <div class="shortcuts-row">
             <kbd class="shortcuts-key">${escapeHtml(s.key)}</kbd>
             <span class="shortcuts-label">${escapeHtml(s.label)}</span>
