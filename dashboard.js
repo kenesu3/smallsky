@@ -1324,9 +1324,46 @@ function closeProfileMenu() {
   profileMenuOpen = false;
 }
 
+/* ---- session heartbeat on wake ----
+ * After hibernate / sleep / long idle, the BigSky session cookie may have
+ * expired server-side while the SmallSky tab stayed open with stale cached
+ * data.  This listener fires a lightweight auth probe (`whoami`) whenever the
+ * tab regains visibility.  If the probe fails with AUTH, the logged-out screen
+ * is shown immediately — no more stale dashboard that looks alive but can't
+ * actually fetch anything. */
+
+let _lastWakeCheck = 0;
+const WAKE_CHECK_COOLDOWN = 60_000; // don't re-check more than once per minute
+
+async function checkSessionOnWake() {
+  const now = Date.now();
+  if (now - _lastWakeCheck < WAKE_CHECK_COOLDOWN) return;
+  _lastWakeCheck = now;
+
+  try {
+    // Bypass the cache — hit BigSky directly to see if the session is alive.
+    const me = await api.whoami();
+    // Session is still good — update state and kick a soft refresh.
+    state.me = me;
+    await store.cacheSet('whoami', me, store.TTL.whoami);
+    refreshAll({ swr: true }).catch(() => {});
+  } catch (e) {
+    if (e.code === 'AUTH') {
+      // Session died during hibernate — show the login screen.
+      showLoggedOutScreen();
+    }
+    // Other errors (network hiccup, etc.) — don't lock out, just ignore.
+  }
+}
+
 /* ---- logged-out auth screen ---- */
 
+let _loggedOutShown = false;
+
 function showLoggedOutScreen() {
+  if (_loggedOutShown) return;   // idempotent — safe to call from multiple paths
+  _loggedOutShown = true;
+
   $('.page').style.display = 'none';
   $('#logged-out').hidden = false;
 
@@ -1334,6 +1371,7 @@ function showLoggedOutScreen() {
    * with whatever cached data we have. No auto-redirect — the user goes to
    * BigSky login only when they explicitly click the button. */
   $('#logged-out-override').addEventListener('click', async () => {
+    _loggedOutShown = false;   // allow re-triggering if session lapses again
     $('#logged-out').hidden = true;
     $('.page').style.display = '';
     showToast('OK — showing cached data. Click refresh to retry the live fetch.');
@@ -1685,6 +1723,15 @@ function wireGlobalEvents() {
   $('[data-action="bell"]').addEventListener('click', (e) => { e.preventDefault(); toggleBell(e.currentTarget); });
   $('[data-action="settings"]').addEventListener('click', (e) => { e.preventDefault(); toggleSettings(e.currentTarget); });
   $('[data-action="profile"]').addEventListener('click', (e) => { e.preventDefault(); toggleProfileMenu(e.currentTarget); });
+
+  // Re-check auth when the tab regains visibility after sleep / hibernate.
+  // This is the fix for the "logged out but still on homepage" bug.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkSessionOnWake();
+    }
+  });
+
   // Brand logo shake — cute touch on click
   const brand = document.querySelector('.brand-logo');
   if (brand) {
