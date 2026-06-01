@@ -343,16 +343,32 @@ function renderGreeting(name) {
   const first = name && name !== '…' ? name.split(' ')[0] : '…';
   const cap = first === '…' ? '…' : first.charAt(0) + first.slice(1).toLowerCase();
   $('#greeting-headline').textContent = `Good ${period}, ${cap}.`;
-  // Sub-line: tasks due soon + new announcements
-  const upcoming = state._upNext ? state._upNext.length : 0;
+  // Sub-line: tasks due soon + new announcements, with "due today" emphasis
+  const items = state._upNext || [];
+  const upcoming = items.length;
+  const dueToday = items.filter(t => {
+    if (!t.due) return false;
+    const d = new Date(t.due);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  }).length;
   const newAnnounce = state._feed ? state._feed.filter(f => f.kind === 'announcement').length : 0;
+  const sub = $('#greeting-sub');
   if (state.courses.length === 0) {
-    $('#greeting-sub').textContent = 'Welcome to SmallSky.';
+    sub.textContent = 'Welcome to SmallSky.';
+  } else if (dueToday > 0) {
+    // Bold accent-colored "due today" emphasis
+    const todayLabel = dueToday === 1 ? '1 thing due today' : `${dueToday} things due today`;
+    const otherCount = upcoming - dueToday;
+    const parts = [`<span class="greeting-due-today">${escapeHtml(todayLabel)}</span>`];
+    if (otherCount > 0) parts.push(`${otherCount} more due soon`);
+    if (newAnnounce > 0) parts.push(newAnnounce === 1 ? '1 announcement' : `${newAnnounce} announcements`);
+    sub.innerHTML = `You have ${parts.join(' and ')}.`;
   } else {
     const parts = [];
     parts.push(upcoming === 1 ? '1 thing due soon' : `${upcoming} things due soon`);
     if (newAnnounce > 0) parts.push(newAnnounce === 1 ? '1 announcement' : `${newAnnounce} announcements`);
-    $('#greeting-sub').textContent = `You have ${parts.join(' and ')}.`;
+    sub.textContent = `You have ${parts.join(' and ')}.`;
   }
 }
 
@@ -387,6 +403,7 @@ function render() {
   renderUpNext(state._upNext);
   renderCourses(arranged);
   renderFeed(state._feed);
+  renderGradeSummary(visibleCourses);
   renderSchedule();
   updateBellBadge();
 }
@@ -750,6 +767,63 @@ function renderFeedExpanded(it) {
       </div>
     </div>
   `;
+}
+
+/* ---- grade summary widget ---- */
+
+function renderGradeSummary(courses) {
+  const section = $('#grade-summary');
+  const body = $('#grade-summary-body');
+  if (!section || !body) return;
+
+  const summary = derive.buildGradeSummary(courses, state.bundles);
+  if (!summary.courses.length) {
+    section.hidden = true;
+    return;
+  }
+
+  section.hidden = false;
+
+  // Color a percentage: green ≥80, accent ≥60, urgent <60
+  const pctCls = (p) => p >= 80 ? 'grade-pct--good' : p >= 60 ? 'grade-pct--ok' : 'grade-pct--low';
+
+  // Overall card
+  const overallHtml = summary.overall ? `
+    <div class="grade-overall">
+      <div class="grade-overall-ring ${pctCls(summary.overall.pct)}">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="8"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="8"
+                  stroke-dasharray="${(summary.overall.pct / 100) * 326.7} 326.7"
+                  stroke-linecap="round" transform="rotate(-90 60 60)"/>
+        </svg>
+        <span class="grade-overall-pct">${summary.overall.pct}%</span>
+      </div>
+      <div class="grade-overall-info">
+        <div class="grade-overall-label">Overall average</div>
+        <div class="grade-overall-detail">${summary.overall.scored} / ${summary.overall.total} pts across ${summary.totalItems} items</div>
+      </div>
+    </div>
+  ` : '';
+
+  // Per-course bars
+  const barsHtml = summary.courses.map(c => {
+    const ci = derive.colorIndex(c.code);
+    return `
+      <div class="grade-course">
+        <div class="grade-course-head">
+          <span class="chip chip-c${ci}">${escapeHtml(c.code)}</span>
+          <span class="grade-course-pct ${pctCls(c.pct)}">${c.pct}%</span>
+        </div>
+        <div class="grade-bar">
+          <div class="grade-bar-fill ${pctCls(c.pct)}" style="width: ${Math.min(c.pct, 100)}%"></div>
+        </div>
+        <div class="grade-course-detail">${c.scored} / ${c.total} pts · ${c.items} item${c.items === 1 ? '' : 's'}</div>
+      </div>
+    `;
+  }).join('');
+
+  body.innerHTML = `${overallHtml}<div class="grade-courses">${barsHtml}</div>`;
 }
 
 /* ---- helpers ---- */
@@ -1725,22 +1799,166 @@ function wireGlobalEvents() {
   $('[data-action="profile"]').addEventListener('click', (e) => { e.preventDefault(); toggleProfileMenu(e.currentTarget); });
 
   // Re-check auth when the tab regains visibility after sleep / hibernate.
-  // This is the fix for the "logged out but still on homepage" bug.
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       checkSessionOnWake();
     }
   });
 
+  // Global keyboard shortcuts
+  wireKeyboardShortcuts();
+
   // Brand logo shake — cute touch on click
   const brand = document.querySelector('.brand-logo');
   if (brand) {
     brand.addEventListener('click', () => {
       brand.classList.remove('shaking');
-      void brand.offsetWidth; // force reflow so animation restarts on repeat clicks
+      void brand.offsetWidth;
       brand.classList.add('shaking');
     });
   }
+}
+
+/* ---- keyboard shortcuts ---- */
+
+const SHORTCUTS = [
+  { key: '/', label: 'Focus search' },
+  { key: 'R', label: 'Refresh data' },
+  { key: 'T', label: 'Toggle light / dark' },
+  { key: 'B', label: 'Open notifications' },
+  { key: 'G', label: 'Toggle grade summary' },
+  { key: '1–9', label: 'Open course by position' },
+  { key: 'Esc', label: 'Close any open panel' },
+  { key: '?', label: 'Show this help' },
+];
+
+let _shortcutsOverlayOpen = false;
+
+function wireKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Don't intercept when typing in an input, textarea, or contenteditable.
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) {
+      // Exception: Esc always works (to blur the field).
+      if (e.key === 'Escape') {
+        e.target.blur();
+        return;
+      }
+      return;
+    }
+    // Ignore when modifier keys (Ctrl/Cmd/Alt) are held — those are browser shortcuts.
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    switch (e.key) {
+      case '/':
+        e.preventDefault();
+        $('#search-input').focus();
+        break;
+
+      case 'r':
+      case 'R':
+        e.preventDefault();
+        showToast('Refreshing…');
+        store.cacheClear().then(() => refreshAll({ swr: false })).then(() => {
+          showToast('Refreshed.');
+          render();
+        }).catch(err => showToast(`Refresh failed: ${err.message}`));
+        break;
+
+      case 't':
+      case 'T':
+        e.preventDefault();
+        toggleTheme(e);
+        break;
+
+      case 'b':
+      case 'B':
+        e.preventDefault();
+        toggleBell($('[data-action="bell"]'));
+        break;
+
+      case 'g':
+      case 'G': {
+        e.preventDefault();
+        const section = $('#grade-summary');
+        if (section) {
+          const wasHidden = section.hidden;
+          section.hidden = !wasHidden;
+          if (!wasHidden) showToast('Grade summary hidden.');
+        }
+        break;
+      }
+
+      case 'Escape':
+        e.preventDefault();
+        if (_shortcutsOverlayOpen) { closeShortcutsOverlay(); break; }
+        closeBell();
+        closeSettings();
+        closeProfileMenu();
+        hidePeek();
+        closeCourseMenu();
+        closeNotesPopover();
+        break;
+
+      case '?':
+        e.preventDefault();
+        toggleShortcutsOverlay();
+        break;
+
+      default: {
+        // Number keys 1-9 → open the Nth visible course in BigSky
+        const num = parseInt(e.key, 10);
+        if (num >= 1 && num <= 9) {
+          e.preventDefault();
+          const arranged = derive.arrangeCourses(state.courses.map(stringIds), state.prefs);
+          const all = [...arranged.pins, ...arranged.main];
+          const course = all[num - 1];
+          if (course) {
+            window.open(`${api.BASE}/d2l/home/${course.OrgUnitId}`, '_blank', 'noopener');
+          } else {
+            showToast(`No course at position ${num}.`);
+          }
+        }
+      }
+    }
+  });
+}
+
+function toggleShortcutsOverlay() {
+  if (_shortcutsOverlayOpen) { closeShortcutsOverlay(); return; }
+  const overlay = $('#shortcuts-overlay');
+  overlay.innerHTML = `
+    <div class="shortcuts-card">
+      <div class="shortcuts-head">
+        <h2 class="shortcuts-title">Keyboard shortcuts</h2>
+        <button class="shortcuts-close" aria-label="Close" data-shortcuts-close>${ICONS.close}</button>
+      </div>
+      <div class="shortcuts-grid">
+        ${SHORTCUTS.map(s => `
+          <div class="shortcuts-row">
+            <kbd class="shortcuts-key">${escapeHtml(s.key)}</kbd>
+            <span class="shortcuts-label">${escapeHtml(s.label)}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="shortcuts-foot muted">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+    </div>
+  `;
+  overlay.hidden = false;
+  requestAnimationFrame(() => overlay.classList.add('visible'));
+  _shortcutsOverlayOpen = true;
+
+  overlay.querySelector('[data-shortcuts-close]').addEventListener('click', closeShortcutsOverlay);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeShortcutsOverlay();
+  });
+}
+
+function closeShortcutsOverlay() {
+  const overlay = $('#shortcuts-overlay');
+  overlay.classList.remove('visible');
+  setTimeout(() => { if (!_shortcutsOverlayOpen) overlay.hidden = true; }, 180);
+  _shortcutsOverlayOpen = false;
 }
 
 function wireGlobalProfileHandlers() {

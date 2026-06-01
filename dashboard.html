@@ -44,6 +44,11 @@
       <img class="brand-logo" src="assets/smallsky-mark.svg" alt="SmallSky">
     </section>
 
+    <section class="grade-summary" id="grade-summary" aria-labelledby="grade-summary-label" hidden>
+      <h2 id="grade-summary-label" class="section-label">My grades</h2>
+      <div class="grade-summary-body" id="grade-summary-body"></div>
+    </section>
+
     <section class="up-next" aria-labelledby="up-next-label">
       <h2 id="up-next-label" class="section-label">Up next</h2>
       <div class="up-next-grid" id="up-next-grid"></div>
@@ -121,6 +126,9 @@
   <input id="avatar-upload" type="file" accept="image/png,image/jpeg,image/webp" style="display:none">
   <!-- Class schedule editor popover (one global instance, retargeted per course). -->
   <div id="class-schedule-editor" class="cs-editor" role="dialog" aria-label="Class schedule" hidden></div>
+
+  <!-- Keyboard shortcuts help overlay. -->
+  <div id="shortcuts-overlay" class="shortcuts-overlay" role="dialog" aria-label="Keyboard shortcuts" hidden></div>
 
   <!-- Toast for upload feedback. -->
   <div id="smallsky-toast" class="toast" hidden></div>
