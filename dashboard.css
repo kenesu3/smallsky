@@ -3561,7 +3561,11 @@ button.peek-news-item:active { background: var(--accent-soft); }
 .cafe-mode .grade-course-detail,
 .cafe-mode .grade-bar-fill,
 .cafe-mode .course-tile-name,
-.cafe-mode .profile-menu-id {
+.cafe-mode .profile-menu-id,
+.cafe-mode .feed-body,
+.cafe-mode .feed-expanded-title,
+.cafe-mode .feed-expanded-body,
+.cafe-mode .bell-item-title {
   filter: blur(5px);
   transition: filter 200ms ease;
 }
@@ -3573,6 +3577,30 @@ button.peek-news-item:active { background: var(--accent-soft); }
 .cafe-mode .grade-course:hover .grade-course-detail,
 .cafe-mode .grade-course:hover .grade-bar-fill,
 .cafe-mode .course-tile:hover .course-tile-name,
-.cafe-mode #profile-menu:hover .profile-menu-id {
+.cafe-mode #profile-menu:hover .profile-menu-id,
+.cafe-mode .feed-item:hover .feed-body,
+.cafe-mode .feed-item:hover .feed-expanded-title,
+.cafe-mode .feed-item:hover .feed-expanded-body,
+.cafe-mode .bell-item:hover .bell-item-title {
   filter: blur(0px);
 }
+
+/* ──────── Grade Summary Hide Button ──────── */
+.grade-summary { position: relative; }
+.grade-summary-hide-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--faint);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.grade-summary-hide-btn:hover { background: var(--surface-soft); color: var(--text); }
+.grade-summary-hide-btn svg { width: 14px; height: 14px; }

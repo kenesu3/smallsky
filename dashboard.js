@@ -861,7 +861,17 @@ function renderGradeSummary(courses) {
     `;
   }).join('');
 
-  body.innerHTML = `${overallHtml}<div class="grade-courses">${barsHtml}</div>`;
+  body.innerHTML = `
+    ${overallHtml}
+    <div class="grade-courses">${barsHtml}</div>
+    <button class="grade-summary-hide-btn" id="grade-summary-hide-btn" aria-label="Hide grades" title="Hide grades">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  `;
+  $('#grade-summary-hide-btn').addEventListener('click', () => {
+    _gradesExpanded = false;
+    renderGradeSummary(courses);
+  });
 }
 
 /* ---- helpers ---- */
