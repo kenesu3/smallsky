@@ -211,6 +211,7 @@ async function init() {
     store.getPrefs(), store.getCoursePhotos(), store.getNotes(),
     store.getRead(), store.getAvatar(), store.getClassSchedules(),
   ]);
+  applyCafeMode();
 
   // Re-render once per minute so the Live badge countdown stays accurate
   // and "soon" → "live" transitions happen automatically.
@@ -776,6 +777,8 @@ function renderFeedExpanded(it) {
  * isn't meaningful for a student's academic overview. */
 const GRADE_EXCLUDE_PREFIXES = ['BOS', 'AI', 'RD'];
 
+let _gradesExpanded = false;
+
 function renderGradeSummary(courses) {
   const section = $('#grade-summary');
   const body = $('#grade-summary-body');
@@ -804,6 +807,20 @@ function renderGradeSummary(courses) {
   }
 
   section.hidden = false;
+
+  if (!_gradesExpanded) {
+    body.innerHTML = `
+      <div class="grade-summary-placeholder">
+        <button class="grade-summary-show-btn" id="grade-summary-show-btn">Show my grades</button>
+        <div class="grade-summary-hint">Press <kbd>G</kbd> to toggle</div>
+      </div>
+    `;
+    $('#grade-summary-show-btn').addEventListener('click', () => {
+      _gradesExpanded = true;
+      renderGradeSummary(courses);
+    });
+    return;
+  }
 
   // Color a percentage: green ≥80, accent ≥60, urgent <60
   const pctCls = (p) => p >= 80 ? 'grade-pct--good' : p >= 60 ? 'grade-pct--ok' : 'grade-pct--low';
@@ -1046,6 +1063,17 @@ async function toggleSettings(anchor) {
     </div>
 
     <section class="settings-section">
+      <h3 class="settings-section-label">Privacy</h3>
+      <label class="settings-toggle">
+        <input type="checkbox" data-pref="cafeMode" ${!!(state.prefs && state.prefs.cafeMode) ? 'checked' : ''}>
+        <span>
+          <span class="settings-toggle-title">Cafe Mode</span>
+          <span class="settings-toggle-sub">Blur grades and student ID. Press <kbd>C</kbd> to toggle instantly.</span>
+        </span>
+      </label>
+    </section>
+
+    <section class="settings-section">
       <h3 class="settings-section-label">Behavior</h3>
       <label class="settings-toggle">
         <input type="checkbox" data-pref="autoReplaceHome" ${auto ? 'checked' : ''}>
@@ -1243,8 +1271,27 @@ function wireGlobalSettingsHandlers() {
     if (pref === 'autoReplaceHome') {
       state.prefs = await store.setPrefs({ autoReplaceHome: e.target.checked });
       showToast(e.target.checked ? 'BigSky home will redirect to SmallSky now.' : 'Auto-redirect off.');
+    } else if (pref === 'cafeMode') {
+      state.prefs = await store.setPrefs({ cafeMode: e.target.checked });
+      applyCafeMode();
+      showToast(e.target.checked ? 'Cafe mode ON' : 'Cafe mode OFF');
     }
   });
+}
+
+function applyCafeMode() {
+  document.body.classList.toggle('cafe-mode', !!(state.prefs && state.prefs.cafeMode));
+}
+
+async function toggleCafeMode() {
+  const current = !!(state.prefs && state.prefs.cafeMode);
+  state.prefs = await store.setPrefs({ cafeMode: !current });
+  applyCafeMode();
+  showToast(!current ? 'Cafe mode ON' : 'Cafe mode OFF');
+  
+  // Also update settings checkbox if the popover is open
+  const checkbox = document.querySelector('input[data-pref="cafeMode"]');
+  if (checkbox) checkbox.checked = !current;
 }
 
 /* ---- bell popover (recent announcements) ---- */
@@ -1848,6 +1895,7 @@ const SHORTCUTS = [
   { key: 'T', label: 'Toggle light / dark' },
   { key: 'B', label: 'Open notifications' },
   { key: 'G', label: 'Toggle grade summary' },
+  { key: 'C', label: 'Toggle Cafe Mode' },
   { key: '1–9', label: 'Open course by position' },
   { key: 'Esc', label: 'Close any open panel' },
   { key: '?', label: 'Show this help' },
@@ -1901,14 +1949,18 @@ function wireKeyboardShortcuts() {
       case 'g':
       case 'G': {
         e.preventDefault();
-        const section = $('#grade-summary');
-        if (section) {
-          const wasHidden = section.hidden;
-          section.hidden = !wasHidden;
-          if (!wasHidden) showToast('Grade summary hidden.');
-        }
+        _gradesExpanded = !_gradesExpanded;
+        // Rerender dashboard to pick up grades view change. 
+        // This recalculates upNext/feed but is completely synchronous and fast.
+        render(); 
         break;
       }
+
+      case 'c':
+      case 'C':
+        e.preventDefault();
+        toggleCafeMode();
+        break;
 
       case 'Escape':
         e.preventDefault();
