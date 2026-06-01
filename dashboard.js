@@ -771,12 +771,33 @@ function renderFeedExpanded(it) {
 
 /* ---- grade summary widget ---- */
 
+/* Course code prefixes to exclude from the grade summary.
+ * These are typically non-academic / admin courses where grade data
+ * isn't meaningful for a student's academic overview. */
+const GRADE_EXCLUDE_PREFIXES = ['BOS', 'AI', 'RD'];
+
 function renderGradeSummary(courses) {
   const section = $('#grade-summary');
   const body = $('#grade-summary-body');
   if (!section || !body) return;
 
   const summary = derive.buildGradeSummary(courses, state.bundles);
+  // Filter out non-academic courses by code prefix.
+  summary.courses = summary.courses.filter(c =>
+    !GRADE_EXCLUDE_PREFIXES.some(p => c.code.startsWith(p))
+  );
+  // Recalculate overall from filtered courses only.
+  if (summary.courses.length) {
+    const scored = summary.courses.reduce((s, c) => s + c.scored, 0);
+    const total = summary.courses.reduce((s, c) => s + c.total, 0);
+    const items = summary.courses.reduce((s, c) => s + c.items, 0);
+    summary.overall = total > 0 ? {
+      scored: Math.round(scored * 100) / 100,
+      total: Math.round(total * 100) / 100,
+      pct: Math.round((scored / total) * 1000) / 10,
+    } : null;
+    summary.totalItems = items;
+  }
   if (!summary.courses.length) {
     section.hidden = true;
     return;
