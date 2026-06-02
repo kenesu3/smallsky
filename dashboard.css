@@ -1266,6 +1266,24 @@ ol, ul { list-style: none; }
   align-items: center;
   gap: 6px;
 }
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  background: var(--surface-soft);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease;
+  margin-right: 4px;
+}
+.topbar-link:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 .icon-btn {
   width: 36px; height: 36px;
   display: inline-flex;

@@ -16,16 +16,16 @@
  * tiny enough that the synchronous-load cost is invisible. */
 (function () {
   var VALID_THEMES = ['default', 'ocean', 'lavender', 'rose', 'mocha', 'benilde', 'slate', 'plain'];
-  var VALID_MODES  = ['light', 'dark'];
+  var VALID_MODES = ['light', 'dark'];
 
   function read(key) {
     try { return localStorage.getItem(key); } catch (_) { return null; }
   }
   function write(key, val) {
-    try { localStorage.setItem(key, val); } catch (_) {}
+    try { localStorage.setItem(key, val); } catch (_) { }
   }
   function remove(key) {
-    try { localStorage.removeItem(key); } catch (_) {}
+    try { localStorage.removeItem(key); } catch (_) { }
   }
 
   /* Legacy migration: before themes existed, smallsky-theme stored "light"/"dark"
@@ -38,7 +38,7 @@
   }
 
   var savedTheme = read('smallsky-theme');
-  var savedMode  = read('smallsky-mode');
+  var savedMode = read('smallsky-mode');
 
   var theme = (VALID_THEMES.indexOf(savedTheme) >= 0) ? savedTheme : 'default';
 
