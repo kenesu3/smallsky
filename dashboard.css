@@ -1950,6 +1950,10 @@ button.course-tile-highlight:active {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
+.cs-time-split { display: flex; align-items: center; gap: 6px; }
+.cs-time-split .cs-input { flex: 1; text-align: center; padding-left: 4px; padding-right: 4px; }
+.cs-time-split .cs-input[disabled] { opacity: 0.6; cursor: not-allowed; }
+.cs-time-colon { font-weight: 700; color: var(--muted); padding-bottom: 2px; }
 .cs-input--wide { width: 100%; }
 .cs-foot {
   display: flex;
