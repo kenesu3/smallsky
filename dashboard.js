@@ -25,6 +25,7 @@ import { initPhoto, triggerPhotoUpload } from './lib/ui/photo.js';
 import { initAvatar, triggerAvatarUpload, removeAvatar } from './lib/ui/avatar.js';
 import { initClassSchedule, openScheduleEditor, liveBadgeHtml } from './lib/ui/class-schedule.js';
 import { initSearch } from './lib/ui/search.js';
+import { initWeeklySchedule, renderWeeklySchedule } from './lib/ui/weekly-schedule.js';
 
 const TTL = store.TTL;
 const fetchLimit = makeLimiter(6);  // max 6 concurrent fetches to BigSky
@@ -204,6 +205,7 @@ async function init() {
   renderTopbar();
   renderGreeting('…');
   wireGlobalEvents();
+  initWeeklySchedule({ state });
 
   // Prefs (pin/hide) + custom photos + notes + read-state + avatar + class schedules
   // load immediately so first render reflects them.
@@ -411,6 +413,7 @@ function render() {
   renderFeed(state._feed);
   renderGradeSummary(visibleCourses);
   renderSchedule();
+  renderWeeklySchedule();
   updateBellBadge();
 }
 
